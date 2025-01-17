@@ -1,0 +1,41 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions: write-all
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.8.1
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Determine Next Version
+        id: next_version
+        run: |
+          NEXT_VERSION=$(npx semantic-release --dry-run | grep -i 'The next release version is' | sed -E 's/.* ([[:digit:].]+)$/\1/')
+          echo "next_version=$NEXT_VERSION" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.ORG_SEMANTIC }}
+
+      - name: Output Next Version
+        run: echo "The next release version is ${{ env.next_version }}"
+
+      - name: Run Semantic Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.ORG_SEMANTIC }}
+        run: npx semantic-release
+
