@@ -98,9 +98,11 @@ send_email() {
 
     # Split the recipients by semicolon and pass them as individual arguments to mailx
     log "DEBUG" "recipients: $recipients"
-    IFS=';' read -ra RECIPIENT_ARRAY <<< "$recipients"
-    printf "%b" "$body" | mailx -S smtp="$smtp_server:$smtp_port" -S from="$smtp_sender" -s "$SUB1" "${RECIPIENT_ARRAY[@]}"
+    # Split the recipients by semicolon and create a space-separated string
+    RECIPIENT_LIST=$(echo "$recipients" | tr ';' ' ')
 
+    # Send the email using mailx
+    printf "%b" "$body" | mailx -S smtp="$smtp_server:$smtp_port" -S from="$smtp_sender" -s "$SUB1" $RECIPIENT_LIST
 
     if [[ $? -eq 0 ]]; then
         log "INFO" "Email successfully sent to: $recipients"
